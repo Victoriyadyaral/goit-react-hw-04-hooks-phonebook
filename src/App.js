@@ -1,5 +1,5 @@
 //import './App.css';
-import React, {  useState, useMemo } from 'react';
+import React, {  useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 
 import 'react-toastify/dist/ReactToastify.css';
@@ -11,8 +11,14 @@ import ContactList from './components/contactList/ContactList';
 
 
 function App() {
-  const [contacts, setContacts] = useState([]);
+  const [contacts, setContacts] = useState(() => {
+    return JSON.parse(window.localStorage.getItem('contacts')) ?? [];
+  });
   const [filter, setFilter] = useState('');
+
+  useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts])
 
   // componentDidMount() {
 
@@ -41,31 +47,18 @@ function App() {
    
     setContacts([newContact, ...contacts]);
     toast.success(`${newContact.name} has been added to your phonebook!`);
-    console.log(contacts)
     return contacts;
-};
+  };
 
-const deleteContact = (contactId) => {
-    // this.setState(prevState => ({
-    //   contacts: prevState.contacts.filter(contact => contact.id !== contactId),
-    // }));
-
-    console.log(contactId);
+  const deleteContact = (contactId) => {
+    setContacts(contacts.filter(contact => contact.id !== contactId));
     toast.warn("Contact deleted from your phonebook!");
-};
+  };
 
-   const changeFilter = (event) => {
+  const changeFilter = (event) => {
     return setFilter(event.target.value);
   }
-
-  const handleBlur = () => {
-   if (this.getVisibleContacts().length === 0) {
-     toast.error("No contact found. Enter the correct request!")
-    } else {
-      toast.success(` ${this.getVisibleContacts().length} contacts found!`)
-    }
-  }
-
+  
   const getVisibleContacts = () => {
     const normalizedFilter = filter.toLowerCase();
    
@@ -73,8 +66,16 @@ const deleteContact = (contactId) => {
       contact.name.toLowerCase().includes(normalizedFilter),
     );
   };
-  
+
   const visibleContacts = getVisibleContacts();
+
+  const handleBlur = () => {
+   if (visibleContacts.length === 0) {
+     toast.error("No contact found. Enter the correct request!")
+    } else {
+      toast.success(` ${visibleContacts.length} contacts found!`)
+    }
+  }
    
     return (
       <Container>
@@ -99,7 +100,7 @@ const deleteContact = (contactId) => {
         />
         <ContactList
          // contacts={visibleContacts}
-          contacts={contacts}
+          contacts={visibleContacts }
           onDeleteContact={deleteContact}
         />
      </Container>
